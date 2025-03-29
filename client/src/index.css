@@ -1,9 +1,0 @@
-/* ถ้าไม่ได้ใช้ Tailwind ก็เขียน CSS ปกติได้ */
-* {
-    box-sizing: border-box;
-  }
-  
-  /* ตัวอย่างเล็กน้อย */
-  body {
-    font-family: sans-serif;
-  }
