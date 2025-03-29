@@ -1,0 +1,13 @@
+# Ignore virtual environment
+venv/
+
+# __pycache__ directories
+__pycache__/
+
+# Python compiled files
+*.pyc
+*.pyo
+*.pyd
+
+# SQLite database file
+db/tic_tac_toe.db

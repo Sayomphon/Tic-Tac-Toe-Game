@@ -1,0 +1,159 @@
+/* static/style.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap'); /* 1. Import Font ที่ดูดี */
+
+body {
+    /* font-family: sans-serif; */ /* ลบ font เดิมออก */
+    font-family: 'Poppins', sans-serif; /* 1. ใช้ Font ใหม่ */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* margin-top: 20px; */ /* ปรับปรุงการจัดวาง */
+    min-height: 100vh; /* ให้ body สูงเต็มจอ */
+    justify-content: center; /* จัดกลางแนวตั้ง */
+    background-color: #f8f9fa; /* 2. เปลี่ยนสีพื้นหลังให้อ่อนลง */
+    color: #343a40; /* 2. กำหนดสีตัวอักษรหลัก */
+    padding: 20px; /* เพิ่ม padding รอบนอก */
+    box-sizing: border-box; /* นับ padding และ border ในขนาด */
+}
+
+.game-container { /* 3. สร้าง container ครอบเกม */
+    background-color: #ffffff;
+    padding: 30px 40px;
+    border-radius: 12px; /* ทำให้ขอบมน */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* 3. เพิ่มเงาให้ดูมีมิติ */
+    text-align: center; /* จัดข้อความใน container ให้อยู่กลาง */
+    max-width: 500px; /* จำกัดความกว้างสูงสุด */
+    width: 100%;
+}
+
+
+h1 {
+    color: #495057; /* 2. ปรับสี Title */
+    font-weight: 700; /* 1. เพิ่มน้ำหนัก Font */
+    margin-bottom: 25px; /* 3. เพิ่มระยะห่างด้านล่าง */
+}
+
+#status {
+    margin: 20px 0 25px 0; /* 3. ปรับระยะห่าง */
+    font-size: 1.3em; /* 1. เพิ่มขนาด */
+    font-weight: 600; /* 1. เพิ่มน้ำหนัก */
+    min-height: 1.5em;
+    color: #007bff; /* 2. ใช้สีที่เด่นขึ้นสำหรับสถานะ */
+    transition: color 0.3s ease; /* เพิ่ม transition ตอนเปลี่ยนสี */
+}
+
+/* -- การแสดงผลคะแนน (ปรับปรุงตามที่คุณต้องการ) -- */
+#scores {
+    display: flex; /* 4. ใช้ Flexbox จัดวาง */
+    justify-content: space-around; /* 4. จัดให้มีช่องว่างเท่าๆ กัน */
+    align-items: center;
+    margin: 30px auto; /* 3. ปรับระยะห่าง */
+    padding: 15px 20px;
+    border: none; /* เอา border เก่าออก */
+    background-color: #e9ecef; /* 2. ใส่พื้นหลังให้ส่วนคะแนน */
+    border-radius: 8px; /* 3. ทำให้ขอบมน */
+    width: 80%; /* 4. กำหนดความกว้าง */
+    max-width: 350px;
+}
+
+.score-box { /* 4. กล่องสำหรับแต่ละผู้เล่น */
+    text-align: center;
+}
+
+.score-box h2 { /* 4. ชื่อผู้เล่น (You / Bot) */
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #495057;
+}
+
+.score-box .score-value { /* 4. ค่าคะแนน */
+    font-size: 2em;
+    font-weight: 700;
+    color: #343a40;
+}
+
+/* สีเฉพาะสำหรับผู้เล่น/บอท (ถ้าต้องการ) */
+.score-box.player .score-value {
+    color: #007bff; /* สีเดียวกับ Status ตอนตาเรา */
+}
+.score-box.bot .score-value {
+    color: #dc3545; /* สีเดียวกับ O */
+}
+/* -- สิ้นสุดส่วนคะแนน -- */
+
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(80px, 100px)); /* ปรับขนาด responsive เล็กน้อย */
+    grid-template-rows: repeat(3, minmax(80px, 100px));
+    gap: 8px; /* 3. เพิ่ม gap เล็กน้อย */
+    background-color: #adb5bd; /* 2. เปลี่ยนสีเส้นขอบ */
+    border: none; /* เอา border เก่าออก */
+    border-radius: 8px; /* 3. ทำให้ขอบกระดานมน */
+    width: fit-content; /* ให้ความกว้างพอดีกับ content */
+    margin: 0 auto 30px auto; /* 3. จัดกลางและเพิ่มระยะห่างล่าง */
+    padding: 8px; /* 3. เพิ่ม padding ในกระดาน */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* เงาเล็กน้อย */
+}
+
+.cell {
+    background-color: #ffffff;
+    border-radius: 6px; /* 3. ทำให้ช่องมน */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3.5em; /* 1. เพิ่มขนาด X O */
+    font-weight: 700; /* 1. เพิ่มน้ำหนัก X O */
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    color: #343a40; /* สี X O เริ่มต้น */
+    user-select: none; /* ป้องกันการ select ข้อความ X O */
+}
+
+.cell:hover:not(.X):not(.O) { /* 5. ทำให้ช่องที่ว่าง hover ได้ชัดเจน */
+    background-color: #e9ecef;
+}
+
+.cell.X {
+    color: #0d6efd; /* 2. เปลี่ยนสี X ให้ชัดเจน */
+}
+
+.cell.O {
+    color: #dc3545; /* 2. เปลี่ยนสี O ให้ชัดเจน */
+}
+
+/* 5. Animation ตอนชนะ (ตัวอย่าง) */
+.cell.winning {
+    animation: pulse 0.6s infinite alternate;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); background-color: #cce5ff;} /* สีฟ้าอ่อน */
+    100% { transform: scale(1.05); background-color: #b8daff;}
+}
+
+
+button#restart-button {
+    padding: 12px 25px; /* 3. ปรับขนาดปุ่ม */
+    font-size: 1.1em; /* 1. ปรับขนาด font */
+    font-weight: 600; /* 1. เพิ่มน้ำหนัก */
+    cursor: pointer;
+    background-color: #198754; /* 2. ปรับสีเขียว */
+    color: white;
+    border: none;
+    border-radius: 8px; /* 3. ทำให้ปุ่มมนขึ้น */
+    transition: background-color 0.2s, transform 0.1s; /* 5. เพิ่ม transition */
+    margin-top: 10px; /* 3. เพิ่มระยะห่างบน */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* เงาเล็กน้อย */
+}
+
+button#restart-button:hover {
+    background-color: #157347; /* 2. สีเข้มขึ้นตอน hover */
+}
+
+button#restart-button:active { /* 5. ทำให้ปุ่มดูเหมือนถูกกด */
+    transform: scale(0.98);
+    box-shadow: none;
+}
