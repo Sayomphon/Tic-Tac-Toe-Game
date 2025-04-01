@@ -7,18 +7,27 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="game-container"> <h1>Tic Tac Toe (You are X)</h1>
+    <div class="game-container">
+        <h1>Tic Tac Toe (You are X)</h1>
         <div id="status">Your turn (X)</div>
         <div id="board">
             </div>
 
         <div id="scores">
-            <div class="score-box player"> <h2>You (X)</h2>
-                <div class="score-value" id="player-score">0</div> </div>
-            <div class="score-box bot"> <h2>Bot (O)</h2>
-                <div class="score-value" id="bot-score">0</div> </div>
+            <div class="score-box player">
+                <h2>You (X)</h2>
+                <div class="score-value" id="player-score">0</div>
+                <div class="wins">Wins: <span class="win-count" id="player-wins">0</span></div>
+                 </div>
+            <div class="score-box bot">
+                <h2>Bot (O)</h2>
+                <div class="score-value" id="bot-score">0</div>
+                <div class="wins">Wins: <span class="win-count" id="bot-wins">0</span></div>
+                </div>
         </div>
 
-        <button id="restart-button">Restart Game</button>
-    </div> <script src="/static/script.js"></script>
+        <button id="restart-button">Reset Scores & New Game</button>
+    </div>
+    <script src="/static/script.js"></script>
 </body>
+</html>

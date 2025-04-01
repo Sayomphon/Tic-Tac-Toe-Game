@@ -1,38 +1,46 @@
 // static/script.js
+
 document.addEventListener('DOMContentLoaded', () => {
     const boardElement = document.getElementById('board');
     const statusElement = document.getElementById('status');
     const restartButton = document.getElementById('restart-button');
-    const scoresElement = document.getElementById('scores-list'); // Ensure you have an element with id="scores-list"
+    // Score elements
+    const playerScoreElement = document.getElementById('player-score');
+    const botScoreElement = document.getElementById('bot-score');
+    // Win count elements (เพิ่มเข้ามาใหม่)
+    const playerWinsElement = document.getElementById('player-wins');
+    const botWinsElement = document.getElementById('bot-wins');
+    // Streak elements (ถ้าต้องการแสดง)
+    // const playerStreakElement = document.getElementById('player-streak');
+    // const botStreakElement = document.getElementById('bot-streak');
+
 
     let currentBoard = ["", "", "", "", "", "", "", "", ""];
     let gameActive = true;
     const playerMark = 'X';
-    const aiMark = 'O';
+    const botMark = 'O'; // กำหนด Bot Mark ไว้ด้วย
 
-    // --- Initialize Board ---
+    // --- Initialization and Board Setup ---
     function createBoard() {
-        boardElement.innerHTML = ''; // Clear previous board
-        for (let i = 0; i < 9; i++) {
+        boardElement.innerHTML = '';
+        currentBoard.forEach((_, index) => { // ใช้ forEach แทน for loop ได้
             const cell = document.createElement('div');
             cell.classList.add('cell');
-            cell.dataset.index = i; // Store index in data attribute
+            cell.dataset.index = index;
             cell.addEventListener('click', handleCellClick);
             boardElement.appendChild(cell);
-        }
-        updateBoardDisplay(); // Ensure initial empty board is shown
+        });
+        updateBoardDisplay(); // อัปเดตครั้งแรก
     }
 
-    // --- Update UI ---
+    // --- UI Updates ---
     function updateBoardDisplay() {
         const cells = boardElement.querySelectorAll('.cell');
         cells.forEach((cell, index) => {
             cell.textContent = currentBoard[index];
-            cell.classList.remove('X', 'O'); // Clear previous marks
-            if (currentBoard[index] === 'X') {
-                cell.classList.add('X');
-            } else if (currentBoard[index] === 'O') {
-                cell.classList.add('O');
+            cell.classList.remove(playerMark, botMark); // ลบทั้ง X และ O ออกก่อน
+            if (currentBoard[index]) {
+                cell.classList.add(currentBoard[index]); // แล้วค่อยเพิ่ม class ตาม mark
             }
         });
     }
@@ -41,47 +49,39 @@ document.addEventListener('DOMContentLoaded', () => {
         statusElement.textContent = message;
     }
 
-    // --- Handle Player Move ---
+    // --- Game Logic and Handling Moves ---
     async function handleCellClick(event) {
         if (!gameActive) return;
 
-        const clickedCell = event.target;
-        const index = parseInt(clickedCell.dataset.index);
+        const index = parseInt(event.target.dataset.index);
+        if (currentBoard[index] !== "" || !gameActive) return; // ตรวจสอบซ้ำ
 
-        if (currentBoard[index] !== "") {
-            updateStatus("Cell already taken!");
-            return;
-        }
-
-        // Player makes move
+        // Player's Move
         currentBoard[index] = playerMark;
         updateBoardDisplay();
 
-        // Check player win before sending to AI
+        // Check Player Win or Tie locally (Optional but good for immediate feedback)
         if (checkLocalWin(playerMark)) {
-             updateStatus("You win!");
-             gameActive = false;
-             await updateScore("Player1", "win"); // Update score on win
-             fetchScores(); // Refresh scores display
-             return;
-         }
-         if (isBoardFull()) {
-              updateStatus("It's a Tie!");
-              gameActive = false;
-              await updateScore("Player1", "tie"); // Update score on tie
-              fetchScores(); // Refresh scores display
-              return;
-          }
+            updateStatus("You win!");
+            gameActive = false;
+            await handleGameOver("Player1", "win"); // เรียกฟังก์ชันจัดการจบเกม
+            return;
+        }
+        if (isBoardFull()) {
+            updateStatus("It's a Tie!");
+            gameActive = false;
+            await handleGameOver("Player1", "tie"); // เรียกฟังก์ชันจัดการจบเกม
+            return;
+        }
 
-
-        // Send board to backend for AI move
+        // AI's Turn
         updateStatus("AI is thinking...");
+        gameActive = false; // ป้องกันการคลิกระหว่าง AI คิด
+
         try {
             const response = await fetch('/api/play', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ board: currentBoard }),
             });
 
@@ -91,116 +91,156 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
-            console.log("Received from backend:", data);
-
             currentBoard = data.new_board;
             updateBoardDisplay();
-            updateStatus(data.message);
+            updateStatus(data.message); // แสดงข้อความจาก API
 
-            if (data.winner) {
-                gameActive = false;
-                // Determine result from Player's perspective
-                let result = "tie"; // Default to tie
-                if (data.winner === playerMark) {
-                   result = "win"; // Should have been caught earlier, but handle defensively
-                } else if (data.winner === aiMark) {
-                    result = "loss";
-                }
-                await updateScore("Player1", result); // Update score after AI potentially wins/ties
-                fetchScores(); // Refresh scores display
-
+            // Check game over status from API response
+            if (data.winner === botMark) { // AI wins
+                // gameActive ถูกตั้งเป็น false แล้วจาก API response หรือ logic ก่อนหน้า
+                await handleGameOver("Player1", "loss"); // Player แพ้
+            } else if (data.is_tie) { // Tie
+                await handleGameOver("Player1", "tie");
             } else {
-                 gameActive = true; // Game continues
+                // Game continues, Player's turn
+                gameActive = true; // เปิดให้ผู้เล่นคลิกได้อีกครั้ง
             }
-
-
         } catch (error) {
-            console.error('Error during API call:', error);
-            updateStatus(`Error: ${error.message}`);
-            gameActive = true; // Allow player to potentially retry? Or handle differently.
+            console.error("Error during AI turn:", error);
+            updateStatus(`Error: ${error.message}. Please restart.`);
+            gameActive = false; // ปิดเกมถ้ามีปัญหา
         }
     }
 
-    // --- Helper functions for Win/Tie Check (Client-side for immediate feedback) ---
-     function checkLocalWin(mark) {
-         const winConditions = [
-             [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-             [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
-             [0, 4, 8], [2, 4, 6]             // Diagonals
-         ];
-         return winConditions.some(condition =>
-             condition.every(index => currentBoard[index] === mark)
-         );
-     }
-
-     function isBoardFull() {
-         return currentBoard.every(cell => cell !== "");
-     }
-
-
-    // --- Handle Score Update ---
-    async function updateScore(playerName, result) {
-        try {
-             console.log(`Updating score for ${playerName}, result: ${result}`);
-             const response = await fetch('/api/update_score', {
-                 method: 'POST',
-                 headers: { 'Content-Type': 'application/json' },
-                 body: JSON.stringify({ player_name: playerName, result: result }),
-             });
-             if (!response.ok) {
-                 const errorData = await response.json();
-                 throw new Error(errorData.detail || 'Failed to update score');
-             }
-             const data = await response.json();
-             console.log("Score update response:", data.message);
-         } catch (error) {
-             console.error("Error updating score:", error);
-             // Optionally display an error to the user
-         }
+    // --- Helper Functions (เหมือนเดิม) ---
+    function checkLocalWin(mark) {
+        const winConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+            [0, 4, 8], [2, 4, 6]             // Diagonals
+        ];
+        return winConditions.some(condition =>
+            condition.every(index => currentBoard[index] === mark)
+        );
     }
 
-     // --- Fetch and Display Scores ---
-     async function fetchScores() {
-        const playerScoreElement = document.getElementById('player-score'); // Get new element
-        const botScoreElement = document.getElementById('bot-score');     // Get new element
-    
-        try {
-            const response = await fetch('/api/get_scores');
-            if (!response.ok) {
-                throw new Error('Failed to fetch scores');
-            }
-            const data = await response.json();
-    
-            playerScoreElement.textContent = '0';
-            botScoreElement.textContent = '0';
-    
-            // Update with fetched scores
-            if (data.scores["Player1"] !== undefined) { // Check if Player1 exists
-                 playerScoreElement.textContent = data.scores["Player1"];
-            }
-             if (data.scores["Bot"] !== undefined) { // Check if Bot exists
-                 botScoreElement.textContent = data.scores["Bot"];
-             }
-    
-        } catch (error) {
-            console.error("Error fetching scores:", error);
-            if (playerScoreElement) playerScoreElement.textContent = '-'; // Show error indicator
-            if (botScoreElement) botScoreElement.textContent = '-';
-        }
+    function isBoardFull() {
+        return currentBoard.every(cell => cell !== "");
     }
-    
-    // --- Restart Game ---
-    function restartGame() {
+
+    function resetBoard() {
         currentBoard = ["", "", "", "", "", "", "", "", ""];
         gameActive = true;
         updateStatus("Your turn (X)");
-        createBoard(); // Recreate the board elements
-        fetchScores(); // Update scores display on restart
+        // ไม่ต้อง createBoard() ซ้ำ ถ้า restartGame() เรียกมันแล้ว
+        updateBoardDisplay(); // แค่อัปเดต UI ให้เป็นช่องว่าง
+    }
+
+    // --- Score Management ---
+    async function updateScoreAPI(playerName, result) { // เปลี่ยนชื่อเล็กน้อย
+        try {
+            await fetch('/api/update_score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ player_name: playerName, result: result }), // ใช้ result ที่รับมา
+            });
+            console.log(`Score update request sent for ${playerName} with result: ${result}`);
+        } catch (error) {
+            console.error(`Failed to update score for ${playerName}:`, error);
+        }
+    }
+
+    async function fetchScores() {
+        try {
+            const response = await fetch('/api/get_scores');
+            if (!response.ok) throw new Error('Failed to fetch scores');
+            const data = await response.json(); // data.scores should be { "Player1": {stats}, "Bot": {stats} }
+
+            const playerStats = data.scores["Player1"] || { score: 0, win_count: 0, win_streak: 0 };
+            const botStats = data.scores["Bot"] || { score: 0, win_count: 0, win_streak: 0 };
+
+            playerScoreElement.textContent = playerStats.score;
+            botScoreElement.textContent = botStats.score;
+            playerWinsElement.textContent = playerStats.win_count; // อัปเดต Win Count
+            botWinsElement.textContent = botStats.win_count; // อัปเดต Win Count
+
+            // อัปเดต Streak ถ้ามี Element
+            // if (playerStreakElement) playerStreakElement.textContent = playerStats.win_streak;
+            // if (botStreakElement) botStreakElement.textContent = botStats.win_streak;
+
+        } catch (error) {
+            console.error("Error fetching scores:", error);
+            playerScoreElement.textContent = '-';
+            botScoreElement.textContent = '-';
+            playerWinsElement.textContent = '-'; // แสดง error
+            botWinsElement.textContent = '-'; // แสดง error
+        }
+    }
+
+    // --- Game Over Handling ---
+    async function handleGameOver(playerName, result) {
+        gameActive = false; // Ensure game stops
+        console.log(`Game Over. Player: ${playerName}, Result: ${result}`);
+
+        // Update scores based on result
+        await updateScoreAPI(playerName, result);
+        if (result === "loss") {
+            // If Player1 lost, it means Bot won
+            await updateScoreAPI("Bot", "win");
+        } else if (result === "win") {
+            // If Player1 won, it means Bot lost
+            await updateScoreAPI("Bot", "loss");
+        } else if (result === "tie") {
+            // If it's a tie, update both (to reset streaks if necessary)
+            await updateScoreAPI("Bot", "tie");
+        }
+
+        // Fetch and display updated scores
+        await fetchScores();
+
+        // Wait a bit then reset the board for a new game
+        setTimeout(() => {
+             console.log("Timeout finished, preparing for new game.");
+             resetBoard(); // Reset board state
+             gameActive = true; // Allow new game to start
+             updateStatus("New Game! Your turn (X)");
+        }, 3000); // 3 seconds delay
+    }
+
+
+    // --- Restart Game Completely ---
+    async function restartGame() {
+        console.log("Restarting game and resetting scores...");
+        gameActive = false; // หยุดเกมชั่วคราว
+        try {
+            // 1. Reset scores on the server
+            await fetch('/api/reset_scores', { method: 'POST' });
+            console.log("Server scores reset request sent.");
+
+            // 2. Fetch the reset scores (should be 0)
+            await fetchScores(); // อัปเดต UI ให้เป็น 0
+            console.log("Fetched reset scores.");
+
+             // 3. Reset the local board state and UI
+            resetBoard(); // รีเซ็ตค่าใน currentBoard และ UI board
+            createBoard(); // สร้าง board ใหม่ (อาจจะไม่จำเป็นถ้า resetBoard ทำครบแล้ว)
+
+            // 4. Set initial game state
+            gameActive = true;
+            updateStatus("Scores Reset! Your turn (X)");
+            console.log("Game ready.");
+
+        } catch (error) {
+            console.error("Error during full game restart:", error);
+            updateStatus("Error restarting game. Please refresh.");
+        }
     }
 
     // --- Event Listeners ---
     restartButton.addEventListener('click', restartGame);
 
-    // --- Initial Setup ---
-    restartGame(); // Start the game for the first time
+    // --- Start Game ---
+    createBoard(); // สร้าง Board ครั้งแรก
+    fetchScores(); // ดึงคะแนนเริ่มต้นเมื่อโหลดหน้าเว็บ
+    updateStatus("Your turn (X)"); // ตั้งค่าสถานะเริ่มต้น
 });
