@@ -1,36 +1,118 @@
 // static/script.js
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Element References ---
+    const bodyElement = document.body; // <--- เพิ่ม: อ้างอิงถึง body สำหรับเปลี่ยน Theme
+    const gameContainer = document.querySelector('.game-container');
     const boardElement = document.getElementById('board');
     const statusElement = document.getElementById('status');
     const restartButton = document.getElementById('restart-button');
     // Score elements
     const playerScoreElement = document.getElementById('player-score');
     const botScoreElement = document.getElementById('bot-score');
-    // Win count elements (เพิ่มเข้ามาใหม่)
+    // Win count elements
     const playerWinsElement = document.getElementById('player-wins');
     const botWinsElement = document.getElementById('bot-wins');
-    // Streak elements (ถ้าต้องการแสดง)
-    // const playerStreakElement = document.getElementById('player-streak');
-    // const botStreakElement = document.getElementById('bot-streak');
+    // Difficulty elements
+    const difficultySegments = document.querySelectorAll('.segmented-control .segment'); // Selector for segmented control buttons
+    const difficultyDescription = document.getElementById('difficulty-description'); // Description element
 
+    // Descriptions for each level (optional but recommended)
+    const difficultyDescriptions = {
+        easy: "Easy: AI plays randomly.",
+        medium: "Medium: AI sometimes plays randomly.",
+        hard: "Hard: AI uses Minimax strategy."
+    };
 
-    let currentBoard = ["", "", "", "", "", "", "", "", ""];
-    let gameActive = true;
+    // --- Game State Variables ---
+    let currentBoard = ["", "", "", "", "", "", "", "", ""]; // Represents the 3x3 board
+    let gameActive = true; // Tracks if the game is currently playable
     const playerMark = 'X';
-    const botMark = 'O'; // กำหนด Bot Mark ไว้ด้วย
+    const botMark = 'O';
+    let currentDifficulty = 'easy'; // Default difficulty, will be updated by initializeDifficulty
+    const resetDelay = 3000; // Delay in milliseconds before resetting the board after a game ends (ใช้ค่าเดิมที่คุณให้มา)
+
+    // --- Initialize Difficulty Based on UI ---
+    function initializeDifficulty() {
+        let foundActive = false;
+        difficultySegments.forEach(segment => {
+            if (segment.classList.contains('active')) {
+                currentDifficulty = segment.dataset.difficulty;
+                foundActive = true;
+                if (difficultyDescription && difficultyDescriptions[currentDifficulty]) {
+                    difficultyDescription.textContent = difficultyDescriptions[currentDifficulty];
+                }
+                // **** เพิ่ม: ตั้งค่า theme class เริ่มต้น ****
+                updateThemeClass(currentDifficulty);
+            }
+        });
+        if (!foundActive) {
+             const easyButton = document.querySelector('.segmented-control .segment[data-difficulty="easy"]');
+             if (easyButton) {
+                easyButton.classList.add('active');
+                currentDifficulty = 'easy';
+                 if (difficultyDescription && difficultyDescriptions[currentDifficulty]) {
+                    difficultyDescription.textContent = difficultyDescriptions[currentDifficulty];
+                 }
+                 // **** เพิ่ม: ตั้งค่า theme class เริ่มต้น ****
+                 updateThemeClass(currentDifficulty);
+             }
+        }
+         console.log("Initial difficulty set to:", currentDifficulty);
+    }
+
+    // --- **** เพิ่ม: ฟังก์ชันอัปเดต Theme Class **** ---
+    function updateThemeClass(difficulty) {
+        if (!gameContainer) return; // ป้องกัน error ถ้าหา gameContainer ไม่เจอ
+
+        // ลบคลาส theme เก่าทั้งหมดออกจาก gameContainer (ไม่ใช่ body)
+        gameContainer.classList.remove('difficulty-easy', 'difficulty-medium', 'difficulty-hard');
+    
+        // เพิ่มคลาส theme ใหม่ตาม difficulty ที่เลือก ให้กับ gameContainer
+        if (difficulty) {
+             gameContainer.classList.add(`difficulty-${difficulty}`);
+        } else {
+             gameContainer.classList.add('difficulty-easy'); // Fallback
+        }
+        console.log("Applied theme class to game-container:", `difficulty-${difficulty || 'easy'}`);
+    }
+
+
+    // --- Event Listener for Difficulty Selection ---
+    difficultySegments.forEach(segment => {
+        segment.addEventListener('click', (event) => {
+            const clickedButton = event.currentTarget;
+            const selectedDifficulty = clickedButton.dataset.difficulty;
+
+            if (currentDifficulty !== selectedDifficulty) {
+                 currentDifficulty = selectedDifficulty;
+                 console.log("Difficulty changed to:", currentDifficulty);
+
+                 difficultySegments.forEach(btn => btn.classList.remove('active'));
+                 clickedButton.classList.add('active');
+
+                 if (difficultyDescription && difficultyDescriptions[selectedDifficulty]) {
+                     difficultyDescription.textContent = difficultyDescriptions[selectedDifficulty];
+                 }
+
+                 // **** เพิ่ม: เรียกใช้ฟังก์ชันอัปเดต Theme ****
+                 updateThemeClass(selectedDifficulty);
+            }
+        });
+    });
+
 
     // --- Initialization and Board Setup ---
     function createBoard() {
-        boardElement.innerHTML = '';
-        currentBoard.forEach((_, index) => { // ใช้ forEach แทน for loop ได้
+        boardElement.innerHTML = ''; // Clear previous board cells if any
+        currentBoard.forEach((_, index) => {
             const cell = document.createElement('div');
             cell.classList.add('cell');
             cell.dataset.index = index;
             cell.addEventListener('click', handleCellClick);
             boardElement.appendChild(cell);
         });
-        updateBoardDisplay(); // อัปเดตครั้งแรก
+        updateBoardDisplay(); // Ensure the visual board matches the initial empty state
     }
 
     // --- UI Updates ---
@@ -38,9 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const cells = boardElement.querySelectorAll('.cell');
         cells.forEach((cell, index) => {
             cell.textContent = currentBoard[index];
-            cell.classList.remove(playerMark, botMark); // ลบทั้ง X และ O ออกก่อน
+            cell.classList.remove(playerMark, botMark);
             if (currentBoard[index]) {
-                cell.classList.add(currentBoard[index]); // แล้วค่อยเพิ่ม class ตาม mark
+                cell.classList.add(currentBoard[index]);
             }
         });
     }
@@ -54,65 +136,69 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gameActive) return;
 
         const index = parseInt(event.target.dataset.index);
-        if (currentBoard[index] !== "" || !gameActive) return; // ตรวจสอบซ้ำ
 
-        // Player's Move
+        if (currentBoard[index] !== "" || !gameActive) return;
+
+        // --- Player's Move ---
         currentBoard[index] = playerMark;
         updateBoardDisplay();
 
-        // Check Player Win or Tie locally (Optional but good for immediate feedback)
+        // --- Check for Player Win or Tie ---
         if (checkLocalWin(playerMark)) {
-            updateStatus("You win!");
-            gameActive = false;
-            await handleGameOver("Player1", "win"); // เรียกฟังก์ชันจัดการจบเกม
+            await handleGameOver("Player1", "win"); // เรียก handleGameOver แล้วจบเลย
+            // ไม่ต้องมี setTimeout(resetBoard, resetDelay); ซ้ำตรงนี้
             return;
         }
         if (isBoardFull()) {
-            updateStatus("It's a Tie!");
-            gameActive = false;
-            await handleGameOver("Player1", "tie"); // เรียกฟังก์ชันจัดการจบเกม
+             await handleGameOver("Player1", "tie"); // เรียก handleGameOver แล้วจบเลย
+             // ไม่ต้องมี setTimeout(resetBoard, resetDelay); ซ้ำตรงนี้
             return;
         }
 
-        // AI's Turn
-        updateStatus("AI is thinking...");
-        gameActive = false; // ป้องกันการคลิกระหว่าง AI คิด
+        // --- AI's Turn ---
+        updateStatus(`AI (${currentDifficulty}) is thinking...`);
+        gameActive = false;
+
+        await new Promise(resolve => setTimeout(resolve, 250)); // Optional delay
 
         try {
             const response = await fetch('/api/play', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ board: currentBoard }),
+                body: JSON.stringify({
+                    board: currentBoard,
+                    difficulty: currentDifficulty
+                }),
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
+                const errorData = await response.json().catch(() => ({ detail: 'Server error occurred.' }));
                 throw new Error(errorData.detail || 'Network response was not ok');
             }
 
             const data = await response.json();
             currentBoard = data.new_board;
             updateBoardDisplay();
-            updateStatus(data.message); // แสดงข้อความจาก API
+            updateStatus(data.message);
 
-            // Check game over status from API response
-            if (data.winner === botMark) { // AI wins
-                // gameActive ถูกตั้งเป็น false แล้วจาก API response หรือ logic ก่อนหน้า
-                await handleGameOver("Player1", "loss"); // Player แพ้
-            } else if (data.is_tie) { // Tie
-                await handleGameOver("Player1", "tie");
+            // --- Check for AI Win or Tie after AI's move ---
+            if (data.winner === botMark) {
+                await handleGameOver("Player1", "loss"); // เรียก handleGameOver
+                // ไม่ต้องมี setTimeout(resetBoard, resetDelay); ซ้ำตรงนี้
+            } else if (data.is_tie) {
+                await handleGameOver("Player1", "tie"); // เรียก handleGameOver
+                // ไม่ต้องมี setTimeout(resetBoard, resetDelay); ซ้ำตรงนี้
             } else {
-                // Game continues, Player's turn
-                gameActive = true; // เปิดให้ผู้เล่นคลิกได้อีกครั้ง
+                gameActive = true; // Game continues
             }
         } catch (error) {
             console.error("Error during AI turn:", error);
-            updateStatus(`Error: ${error.message}. Please restart.`);
-            gameActive = false; // ปิดเกมถ้ามีปัญหา
+            updateStatus(`Error: ${error.message}. Please try restarting the game.`);
+            gameActive = false;
         }
     }
 
-    // --- Helper Functions (เหมือนเดิม) ---
+    // --- Helper Functions ---
     function checkLocalWin(mark) {
         const winConditions = [
             [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
@@ -131,101 +217,115 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetBoard() {
         currentBoard = ["", "", "", "", "", "", "", "", ""];
         gameActive = true;
-        updateStatus("Your turn (X)");
-        // ไม่ต้อง createBoard() ซ้ำ ถ้า restartGame() เรียกมันแล้ว
-        updateBoardDisplay(); // แค่อัปเดต UI ให้เป็นช่องว่าง
+        updateBoardDisplay();
     }
 
     // --- Score Management ---
-    async function updateScoreAPI(playerName, result) { // เปลี่ยนชื่อเล็กน้อย
+    async function updateScoreAPI(playerName, result) {
         try {
-            await fetch('/api/update_score', {
+            const response = await fetch('/api/update_score', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ player_name: playerName, result: result }), // ใช้ result ที่รับมา
+                body: JSON.stringify({ player_name: playerName, result: result }),
             });
-            console.log(`Score update request sent for ${playerName} with result: ${result}`);
+            if (!response.ok) {
+                console.error(`Failed to update score for ${playerName}. Status: ${response.status}`);
+            } else {
+                 console.log(`Score update request sent for ${playerName} with result: ${result}`);
+            }
         } catch (error) {
-            console.error(`Failed to update score for ${playerName}:`, error);
+            console.error(`Error updating score for ${playerName}:`, error);
         }
     }
 
     async function fetchScores() {
         try {
             const response = await fetch('/api/get_scores');
-            if (!response.ok) throw new Error('Failed to fetch scores');
-            const data = await response.json(); // data.scores should be { "Player1": {stats}, "Bot": {stats} }
+            if (!response.ok) throw new Error(`Failed to fetch scores. Status: ${response.status}`);
+            const data = await response.json();
 
             const playerStats = data.scores["Player1"] || { score: 0, win_count: 0, win_streak: 0 };
             const botStats = data.scores["Bot"] || { score: 0, win_count: 0, win_streak: 0 };
 
             playerScoreElement.textContent = playerStats.score;
             botScoreElement.textContent = botStats.score;
-            playerWinsElement.textContent = playerStats.win_count; // อัปเดต Win Count
-            botWinsElement.textContent = botStats.win_count; // อัปเดต Win Count
-
-            // อัปเดต Streak ถ้ามี Element
-            // if (playerStreakElement) playerStreakElement.textContent = playerStats.win_streak;
-            // if (botStreakElement) botStreakElement.textContent = botStats.win_streak;
+            playerWinsElement.textContent = playerStats.win_count;
+            botWinsElement.textContent = botStats.win_count;
 
         } catch (error) {
             console.error("Error fetching scores:", error);
             playerScoreElement.textContent = '-';
             botScoreElement.textContent = '-';
-            playerWinsElement.textContent = '-'; // แสดง error
-            botWinsElement.textContent = '-'; // แสดง error
+            playerWinsElement.textContent = '-';
+            botWinsElement.textContent = '-';
         }
     }
 
     // --- Game Over Handling ---
-    async function handleGameOver(playerName, result) {
-        gameActive = false; // Ensure game stops
-        console.log(`Game Over. Player: ${playerName}, Result: ${result}`);
+    async function handleGameOver(playerName, playerResult) {
+        gameActive = false;
+        console.log(`Game Over. Player: ${playerName}, Result: ${playerResult}`);
 
-        // Update scores based on result
-        await updateScoreAPI(playerName, result);
-        if (result === "loss") {
-            // If Player1 lost, it means Bot won
+        let finalStatus = "";
+        if (playerResult === "win") {
+            finalStatus = "You win!";
+        } else if (playerResult === "loss") {
+            finalStatus = "AI wins!";
+        } else {
+            finalStatus = "It's a Tie!";
+        }
+        updateStatus(finalStatus);
+
+        // Update scores for both players
+        await updateScoreAPI(playerName, playerResult);
+        if (playerResult === "loss") {
             await updateScoreAPI("Bot", "win");
-        } else if (result === "win") {
-            // If Player1 won, it means Bot lost
+        } else if (playerResult === "win") {
             await updateScoreAPI("Bot", "loss");
-        } else if (result === "tie") {
-            // If it's a tie, update both (to reset streaks if necessary)
+        } else if (playerResult === "tie") {
             await updateScoreAPI("Bot", "tie");
         }
 
-        // Fetch and display updated scores
-        await fetchScores();
+        await fetchScores(); // Fetch scores after updates are sent
 
-        // Wait a bit then reset the board for a new game
+        // --- นี่คือส่วนที่จัดการการ Delay และ Reset Board ---
         setTimeout(() => {
              console.log("Timeout finished, preparing for new game.");
-             resetBoard(); // Reset board state
-             gameActive = true; // Allow new game to start
-             updateStatus("New Game! Your turn (X)");
-        }, 3000); // 3 seconds delay
+             resetBoard(); // Reset board state and make game active again
+             updateStatus("New Game! Your turn (X)"); // Set status for the new round
+        }, resetDelay); // ใช้ค่า resetDelay ที่กำหนดไว้ (3000ms)
     }
 
 
     // --- Restart Game Completely ---
     async function restartGame() {
         console.log("Restarting game and resetting scores...");
-        gameActive = false; // หยุดเกมชั่วคราว
+        gameActive = false;
         try {
-            // 1. Reset scores on the server
             await fetch('/api/reset_scores', { method: 'POST' });
             console.log("Server scores reset request sent.");
 
-            // 2. Fetch the reset scores (should be 0)
-            await fetchScores(); // อัปเดต UI ให้เป็น 0
+            await fetchScores();
             console.log("Fetched reset scores.");
 
-             // 3. Reset the local board state and UI
-            resetBoard(); // รีเซ็ตค่าใน currentBoard และ UI board
-            createBoard(); // สร้าง board ใหม่ (อาจจะไม่จำเป็นถ้า resetBoard ทำครบแล้ว)
+            resetBoard();
 
-            // 4. Set initial game state
+            const defaultDifficulty = 'easy';
+            difficultySegments.forEach(segment => {
+                if (segment.dataset.difficulty === defaultDifficulty) {
+                    segment.classList.add('active');
+                } else {
+                    segment.classList.remove('active');
+                }
+            });
+            currentDifficulty = defaultDifficulty;
+            if (difficultyDescription && difficultyDescriptions[currentDifficulty]) {
+               difficultyDescription.textContent = difficultyDescriptions[currentDifficulty];
+            }
+            // **** เพิ่ม: Reset Theme Class ****
+            updateThemeClass(defaultDifficulty);
+            console.log("Difficulty reset to:", currentDifficulty);
+
             gameActive = true;
             updateStatus("Scores Reset! Your turn (X)");
             console.log("Game ready.");
@@ -239,8 +339,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     restartButton.addEventListener('click', restartGame);
 
-    // --- Start Game ---
-    createBoard(); // สร้าง Board ครั้งแรก
-    fetchScores(); // ดึงคะแนนเริ่มต้นเมื่อโหลดหน้าเว็บ
-    updateStatus("Your turn (X)"); // ตั้งค่าสถานะเริ่มต้น
+    // --- Initial Game Setup When Page Loads ---
+    initializeDifficulty(); // Set difficulty and initial theme based on UI state
+    createBoard();        // Create the initial empty board UI
+    fetchScores();        // Fetch and display scores from the backend
+    updateStatus("Your turn (X)"); // Set the initial prompt for the player
 });

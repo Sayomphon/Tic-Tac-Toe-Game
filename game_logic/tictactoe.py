@@ -43,97 +43,78 @@ class TicTacToe:
         return [i for i, spot in enumerate(self.board) if spot == ""]
 
 # --- AI Logic (Placeholder / Simple Random) ---
-"""
-def get_ai_move(board, ai_mark):
-    available_moves = [i for i, spot in enumerate(board) if spot == ""]
-    if not available_moves:
-        return None # No moves left
-    return random.choice(available_moves)
-"""
 
-# ฟังก์ชัน get_ai_move ที่ใช้ Minimax
-def get_ai_move(board, ai_mark):
-    # 1. หา Mark ของผู้เล่น (คู่ต่อสู้)
-    player_mark = 'X' if ai_mark == 'O' else 'O'
-
-    # 2. ตั้งค่าเริ่มต้นสำหรับคะแนนและท่าเดินที่ดีที่สุด
-    best_score = -float('inf') # เริ่มด้วยคะแนนต่ำสุดที่เป็นไปได้
-    best_move = None
-
-    # 3. หาท่าเดินที่เป็นไปได้ทั้งหมด
+# **** แก้ไข get_ai_move ให้รับ difficulty และเปลี่ยน Logic ****
+def get_ai_move(board, ai_mark, difficulty): # รับ difficulty เพิ่ม
     available_moves = get_available_moves_utility(board)
-
-    # ถ้าไม่มีท่าให้เดินแล้ว (ไม่น่าเกิดถ้าเกมดำเนินถูกต้อง)
     if not available_moves:
         return None
 
-    print(f"AI ({ai_mark}) calculating best move using Minimax...")
+    print(f"AI ({ai_mark}) thinking with difficulty: {difficulty}")
 
-    # 4. วนลูปพิจารณาทุกท่าเดินที่เป็นไปได้
-    for move in available_moves:
-        # 4.1 สร้างกระดานจำลอง: สำคัญมากที่ต้อง *คัดลอก* กระดานเดิม
-        temp_board = board[:]
-        # ลองเดินท่า 'move' นี้บนกระดานจำลอง
-        temp_board[move] = ai_mark
+    # --- Logic เลือกท่าเดินตาม Difficulty ---
+    if difficulty == "easy":
+        # EASY: เลือกท่าเดินแบบสุ่มเสมอ
+        print("  - Difficulty: Easy (Choosing random move)")
+        return random.choice(available_moves)
 
-        # 4.2 เรียก Minimax เพื่อประเมินผล:
-        #    - เราต้องการรู้คะแนน *หลังจาก* AI เดินไปแล้ว
-        #    - ตาถัดไปจะเป็นของผู้เล่น (Minimizing Player) ดังนั้น is_maximizing=False
-        #    - เริ่มต้น depth ที่ 0
-        eval_result = minimax(temp_board, 0, False, player_mark, ai_mark)
-        score = eval_result['score'] # ดึงคะแนนจากการประเมิน
+    elif difficulty == "medium":
+        # MEDIUM: มีโอกาส 50% ที่จะเดินสุ่ม, 50% ที่จะเดินแบบ Minimax
+        if random.random() < 0.5: # random.random() ให้ค่า float ระหว่าง 0.0 ถึง 1.0
+            print("  - Difficulty: Medium (Choosing random move by chance)")
+            return random.choice(available_moves)
+        else:
+            print("  - Difficulty: Medium (Choosing best move via Minimax)")
+            # ถ้าไม่สุ่ม ก็จะไปใช้ Logic ของ Hard (Minimax) ด้านล่าง
+            pass # ใช้ pass เพื่อให้โค้ดไหลลงไปที่ส่วน Hard
 
-        print(f"  - Evaluating move {move}: score = {score}") # สำหรับ Debug
+    # HARD (หรือ Medium ที่ไม่สุ่ม): ใช้ Minimax
+    # (เงื่อนไขครอบคลุม difficulty == "hard" หรือกรณีที่มาจาก medium แล้วไม่สุ่ม)
+    if difficulty == "hard" or difficulty == "medium":
+         player_mark = 'X' if ai_mark == 'O' else 'O'
+         best_score = -float('inf')
+         best_move = None
 
-        # 4.3 อัปเดตท่าเดินที่ดีที่สุด:
-        #    - ถ้าคะแนนจากการลองเดินท่า 'move' นี้ ดีกว่าคะแนนที่ดีที่สุดที่เคยเจอ
-        if score > best_score:
-            best_score = score  # อัปเดตคะแนนที่ดีที่สุด
-            best_move = move    # อัปเดตท่าเดินที่ดีที่สุด
+         print(f"  - Calculating best move using Minimax...")
 
-    # 5. คืนค่าท่าเดินที่ดีที่สุดที่พบ
-    print(f"AI ({ai_mark}) chose move {best_move} with best score {best_score}")
-    return best_move
+         # สร้าง List ของท่าเดินที่เป็นไปได้ (อาจจะสลับลำดับเพื่อความไม่แน่นอนเล็กน้อย ถ้าต้องการ)
+         shuffled_moves = available_moves[:] # ทำสำเนา
+         random.shuffle(shuffled_moves) # สลับลำดับท่าเดินที่จะพิจารณา
+
+         for move in shuffled_moves: # วนลูปตามลำดับที่สลับแล้ว
+             temp_board = board[:]
+             temp_board[move] = ai_mark
+             eval_result = minimax(temp_board, 0, False, player_mark, ai_mark)
+             score = eval_result['score']
+             print(f"    - Evaluating move {move}: score = {score}")
+
+             # อัปเดตท่าที่ดีที่สุด
+             # (อาจจะเก็บท่าทั้งหมดที่มีคะแนนเท่ากัน แล้วสุ่มเลือกตอนท้าย เพื่อให้ Hard ดูไม่ตายตัวเกินไป)
+             if score > best_score:
+                 best_score = score
+                 best_move = move
+             # Optional: ถ้าคะแนนเท่ากัน ให้มีโอกาสเปลี่ยน best_move บ้างเล็กน้อย
+             elif score == best_score:
+                 if random.random() < 0.3: # โอกาส 30% ที่จะเปลี่ยนไปใช้ท่าใหม่ที่คะแนนเท่าเดิม
+                     best_move = move
+
+
+         # กรณีที่ไม่ควรเกิด: ถ้าวนลูปแล้วยังไม่ได้ best_move (อาจเกิดถ้ามี bug ใน minimax หรือ available_moves)
+         if best_move is None and available_moves:
+             print("Warning: Minimax did not determine a best move. Choosing randomly.")
+             best_move = random.choice(available_moves) # เลือกสุ่มเป็น Fallback
+
+         print(f"  - AI ({ai_mark}) chose move {best_move} with best score {best_score}")
+         return best_move
+
+    else:
+        # กรณีค่า difficulty ไม่รู้จัก (ไม่ควรเกิดถ้า Frontend/Backend ทำงานถูกต้อง)
+        print(f"Warning: Unknown difficulty '{difficulty}'. Defaulting to random move.")
+        return random.choice(available_moves)
 
 # --- Minimax Placeholder ---
-"""
-def minimax(board, maximizing_player):
-    # TODO: Implement Minimax logic here
-    print("Warning: Minimax function not implemented yet.")
-    # For now, just return a dummy evaluation score
-    if check_win_utility(board, 'O'): # Assuming 'O' is AI
-        return {'score': 1}
-    elif check_win_utility(board, 'X'): # Assuming 'X' is player
-        return {'score': -1}
-    elif is_board_full_utility(board):
-        return {'score': 0}
-
-    # Placeholder recursive call structure (needs actual logic)
-    if maximizing_player:
-        max_eval = {'score': -float('inf')}
-        # for move in get_available_moves_utility(board):
-        #    make_move_temp(...)
-        #    evaluation = minimax(new_board, False)
-        #    undo_move_temp(...)
-        #    if evaluation['score'] > max_eval['score']:
-        #        max_eval = evaluation
-        return max_eval # Placeholder
-    else:
-        min_eval = {'score': float('inf')}
-        # for move in get_available_moves_utility(board):
-        #    make_move_temp(...)
-        #    evaluation = minimax(new_board, True)
-        #    undo_move_temp(...)
-        #    if evaluation['score'] < min_eval['score']:
-        #        min_eval = evaluation
-        return min_eval # Placeholder
-"""
 
 def minimax(current_board, depth, is_maximizing, player_mark, ai_mark):
-    """
-    Minimax algorithm implementation for Tic Tac Toe.
-    Returns a dictionary like {'score': S, 'move': M} where S is the score and M might be the best move found from this state (optional).
-    """
     # --- Base Cases (จุดสิ้นสุดการ Recursion) ---
     if check_win_utility(current_board, ai_mark):
         return {'score': 1} # AI ชนะ (คะแนนสูง)

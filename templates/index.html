@@ -1,32 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Fredoka:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 </head>
-<body>
+<body class="difficulty-easy">
+
     <div class="game-container">
-        <h1>Tic Tac Toe (You are X)</h1>
-        <div id="status">Your turn (X)</div>
+
+        <div class="section-box title-section">
+            <h1 class="game-title title-with-icons">
+                <i class="fa-solid fa-xmark icon-x"></i>
+                Tic Tac Toe
+                <i class="fa-regular fa-circle icon-o"></i>
+                <span class="subtitle">(You are X)</span>
+            </h1>
+        </div>
+
+        <div class="section-box difficulty-section">
+             <div class="difficulty-control-group">
+                <label class="difficulty-label">AI Level:</label>
+                <div class="segmented-control">
+                    <button class="segment active" data-difficulty="easy">Easy</button>
+                    <button class="segment" data-difficulty="medium">Medium</button>
+                    <button class="segment" data-difficulty="hard">Hard</button>
+                </div>
+            </div>
+            <p id="difficulty-description">Easy: AI plays randomly.</p>
+        </div>
+
+        <div id="status">Scores Reset! Your turn (X)</div>
+
         <div id="board">
             </div>
 
-        <div id="scores">
+        <div id="scores" class="section-box score-section">
             <div class="score-box player">
-                <h2>You (X)</h2>
+                 <h2>You (X)</h2>
                 <div class="score-value" id="player-score">0</div>
                 <div class="wins">Wins: <span class="win-count" id="player-wins">0</span></div>
-                 </div>
+            </div>
             <div class="score-box bot">
-                <h2>Bot (O)</h2>
+                 <h2>Bot (O)</h2>
                 <div class="score-value" id="bot-score">0</div>
                 <div class="wins">Wins: <span class="win-count" id="bot-wins">0</span></div>
-                </div>
+            </div>
         </div>
 
         <button id="restart-button">Reset Scores & New Game</button>
+
     </div>
     <script src="/static/script.js"></script>
 </body>

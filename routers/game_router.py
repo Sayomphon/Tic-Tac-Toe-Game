@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException, Body
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict # เพิ่ม Dict
+from enum import Enum
 
 # Import game logic and database functions
 from game_logic.tictactoe import get_ai_move, check_win_utility, is_board_full_utility
@@ -11,8 +12,15 @@ router = APIRouter()
 
 # --- Pydantic Models ---
 
+# สร้าง Enum สำหรับระดับความยาก (แนะนำ)
+class DifficultyLevel(str, Enum):
+    EASY = "easy"
+    MEDIUM = "medium"
+    HARD = "hard"
+
 class PlayRequest(BaseModel):
     board: List[str] = Field(..., min_length=9, max_length=9)
+    difficulty: DifficultyLevel = DifficultyLevel.EASY # กำหนดค่า Default เป็น Easy
 
 class PlayResponse(BaseModel):
     new_board: List[str]
@@ -40,6 +48,7 @@ class ScoreResponse(BaseModel):
 @router.post("/play", response_model=PlayResponse)
 async def play_turn(request: PlayRequest):
     current_board = request.board
+    difficulty = request.difficulty
     player_mark = 'X'
     ai_mark = 'O'
 
@@ -50,46 +59,54 @@ async def play_turn(request: PlayRequest):
     if is_board_full_utility(current_board) and not check_win_utility(current_board, player_mark) and not check_win_utility(current_board, ai_mark):
          return PlayResponse(new_board=current_board, winner=None, is_tie=True, message="It's a tie!", ai_move=None)
 
-    # --- Get AI Move ---
-    ai_move_index = get_ai_move(current_board, ai_mark) # ควรส่ง mark ของ AI ไปด้วย
-    print(f"AI ('{ai_mark}') chooses move: {ai_move_index}")
+# --- Get AI Move (ส่ง difficulty เข้าไปด้วย) ---
+    # **** แก้ไขการเรียก get_ai_move ****
+    ai_move_index = get_ai_move(current_board, ai_mark, difficulty) # ส่ง difficulty เป็น argument ที่ 3
+    #print(f"AI ('{ai_mark}') chooses move: {ai_move_index} (Difficulty: {difficulty})")
 
+    # ... (ส่วน Logic หลัง AI เดิน, การสร้าง Response เหมือนเดิม) ...
     new_board = current_board[:]
     winner = None
     is_tie = False
-    message = "Error"
+    message = "Error processing AI move." # Default error message
 
-    if ai_move_index is not None and new_board[ai_move_index] == "":
-        new_board[ai_move_index] = ai_mark
-
-        # --- Check game status after AI move ---
-        if check_win_utility(new_board, ai_mark):
-            winner = ai_mark
-            is_tie = False
-            message = "AI (O) wins!"
-        elif is_board_full_utility(new_board):
-            winner = None # หรือจะให้เป็น "Tie" ก็ได้
-            is_tie = True
-            message = "It's a tie!"
+    if ai_move_index is not None:
+        if new_board[ai_move_index] == "":
+            new_board[ai_move_index] = ai_mark
+            # Check game status after AI move
+            if check_win_utility(new_board, ai_mark):
+                winner = ai_mark
+                is_tie = False
+                message = "AI (O) wins!"
+            elif is_board_full_utility(new_board):
+                winner = None
+                is_tie = True
+                message = "It's a tie!"
+            else:
+                winner = None
+                is_tie = False
+                message = "AI moved. Your turn."
         else:
-            winner = None
-            is_tie = False
-            message = "AI moved. Your turn."
+             # Handle error: AI chose an occupied square (shouldn't happen with valid logic)
+             print(f"Error: AI chose occupied square {ai_move_index}")
+             raise HTTPException(status_code=500, detail="AI logic error: Chose occupied square.")
 
-        return PlayResponse(
-            new_board=new_board,
-            winner=winner,
-            is_tie=is_tie,
-            message=message,
-            ai_move=ai_move_index
-        )
-    elif is_board_full_utility(new_board): # กรณี AI ไม่มีที่เดิน และกระดานเต็ม
-         return PlayResponse(new_board=new_board, winner=None, is_tie=True, message="Board is full! It's a tie.", ai_move=None)
-    else:
-         # กรณีเกิดข้อผิดพลาดที่ AI หาช่องเดินไม่ได้ทั้งที่ควรจะมี
-         print("Error: AI move index is None or invalid, but board is not full/won.")
-         raise HTTPException(status_code=500, detail="Could not determine valid AI move.")
+    elif is_board_full_utility(new_board): # Case where board is full, no move possible
+        winner = None
+        is_tie = True
+        message = "Board is full! It's a tie."
+    else: # Case where get_ai_move returned None unexpectedly
+         print("Error: get_ai_move returned None, but board doesn't seem finished.")
+         raise HTTPException(status_code=500, detail="Could not determine AI move.")
 
+
+    return PlayResponse(
+        new_board=new_board,
+        winner=winner,
+        is_tie=is_tie,
+        message=message,
+        ai_move=ai_move_index
+    )
 
 @router.post("/update_score")
 async def update_player_score(request: ScoreUpdateRequest):
