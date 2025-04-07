@@ -15,8 +15,9 @@ A web-based Tic-Tac-Toe game where you play against an AI opponent with varying 
 
 ## 📸 Demo / Screenshot
 
-![image](https://github.com/Sayomphon/Tic-Tac-Toe-Game/blob/main/Pictures/playing%20hard.png)
-
+<p align="center">
+  <img src="https://github.com/Sayomphon/Tic-Tac-Toe-Game/blob/main/Pictures/playing%20hard.png?raw=true" alt="Playing Hard">
+</p>
 
 ## 💻 Technologies Used
 
@@ -51,6 +52,7 @@ Follow these steps to set up and run the project locally:
     python -m venv venv
 
     # Activate the virtual environment
+    
     # On Windows:
     .\venv\Scripts\activate
     
