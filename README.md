@@ -118,7 +118,8 @@ This project implements the specific requirements using the following techniques
 * **Score Viewing:** The frontend uses JavaScript's `Workspace` to call the `/api/get_scores` endpoint. This endpoint retrieves the current statistics (score, win streak, total wins) for all known players ("Player1", "Bot") from the database and returns them as JSON. The JavaScript then updates the corresponding HTML elements on the page.
 * **Web Framework (FastAPI):** FastAPI handles incoming HTTP requests, routes them to the appropriate Python functions (defined in `routers/game_router.py`), validates request data (using Pydantic models), calls the game/database logic, and returns JSON responses to the frontend. It also serves the static files (HTML, CSS, JS).
 
-📝 License
-Released under the  Apache License. See LICENSE for details.
+## 📝 License
+
+Released under the  Apache License. See [LICENSE](https://github.com/Sayomphon/Tic-Tac-Toe-Game/tree/main?tab=Apache-2.0-1-ov-file).
 
 Enjoy the game & may the best strategy win!
