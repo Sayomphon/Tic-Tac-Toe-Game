@@ -1,9 +1,19 @@
+/* ------------------------------------------------------------------
+   Font Imports
+   ------------------------------------------------------------------ */
+
 /* ----- Import Fonts ----- */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Fredoka:wght@500&display=swap');
-/* เพิ่ม Font Awesome ถ้ายังไม่มีใน HTML */
+/* Add Font Awesome if the HTML has not already included it */
 /* @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'); */
 
+/* ------------------------------------------------------------------
+   Base Page Styling
+   ------------------------------------------------------------------ */
+
 /* ----- Base Body Style ----- */
+/* Center the .game-container both vertically and horizontally,
+   apply the global font, and use a neutral background for the page. */
 body {
     display: flex;
     justify-content: center;
@@ -11,42 +21,54 @@ body {
     min-height: 100vh;
     margin: 0;
     font-family: 'Poppins', sans-serif;
-    background-color: #f0f2f5; /* <<--- สีพื้นหลังนอกเกม (สีกลางๆ) */
-    /* transition ไม่จำเป็นแล้ว */
+    background-color: #f0f2f5; /* <<--- outside‑game background (neutral) */
+    /* transition not required anymore */
 }
 
+/* ------------------------------------------------------------------
+   Main Game Container
+   ------------------------------------------------------------------ */
+
 /* ----- Main Game Container ----- */
+/* A rounded white card with drop‑shadow.  
+   Its background / border colors are overridden by difficulty themes. */
 .game-container {
-    background-color: #ffffff; /* สีพื้นหลังเริ่มต้น (Easy) */
+    background-color: #ffffff; /* default background (Easy) */
     padding: 30px;
     border-radius: 15px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     width: 90%;
     max-width: 450px;
     text-align: center;
-    border: 3px solid transparent; /* เตรียมเส้นขอบ */
-    transition: background-color 0.4s ease, border-color 0.4s ease; /* transition สำหรับ theme */
+    border: 3px solid transparent;      /* placeholder border, recolored per theme */
+    transition: background-color 0.4s ease, border-color 0.4s ease;
 }
+
+/* ------------------------------------------------------------------
+   Difficulty‑dependent Theme Variants
+   ------------------------------------------------------------------ */
 
 /* ----- Theme Styling for Game Container ----- */
-/* Easy Theme (Default Green Accents) */
+/* Easy Theme (green accents) */
 .game-container.difficulty-easy {
-    /* background-color: #ffffff; */ /* เป็น default อยู่แล้ว */
-    border-color: #d1e7dd; /* เขียวอ่อน */
+    /* background-color: #ffffff;  (already default) */
+    border-color: #d1e7dd; /* light green */
 }
-/* Medium Theme (Yellow/Orange Accents) */
+/* Medium Theme (yellow/orange accents) */
 .game-container.difficulty-medium {
-    background-color: #fffbf2; /* ครีมอ่อน */
-    border-color: #ffe599; /* เหลือง */
+    background-color: #fffbf2; /* very light cream */
+    border-color: #ffe599;      /* light yellow */
 }
-/* Hard Theme (Red/Pink Accents) */
+/* Hard Theme (red/pink accents) */
 .game-container.difficulty-hard {
-    background-color: #fff5f5; /* ชมพูอ่อน */
-    border-color: #f5c6cb; /* แดงอ่อน */
+    background-color: #fff5f5; /* very light pink */
+    border-color: #f5c6cb;     /* light red */
 }
 
+/* ------------------------------------------------------------------
+   Section Boxes (generic panels inside container)
+   ------------------------------------------------------------------ */
 
-/* ----- Section Box Styling ----- */
 .section-box {
     background-color: #f8f9fa;
     border: 1px solid #e9ecef;
@@ -55,17 +77,21 @@ body {
     margin-bottom: 20px;
 }
 
+/* ------------------------------------------------------------------
+   Game Title (with icon fonts)
+   ------------------------------------------------------------------ */
+
 /* ----- Title Section ----- */
 .title-section {
-   padding: 15px; /* ปรับ padding ให้เหมาะสมกับดีไซน์ใหม่ */
-   /* background/border มาจาก .section-box แล้ว */
+   padding: 15px; /* adjust spacing to match new design */
+   /* background / border come from .section-box */
 }
 
 /* --- Title Idea 2: With Icons --- */
-/* ใช้สไตล์นี้แทน .game-title เดิม */
+/* Replaces legacy .game-title rules */
 .title-with-icons {
-    font-family: 'Fredoka', sans-serif; /* Font สำหรับชื่อเกม */
-    font-size: 2.6em; /* ปรับขนาดตามความเหมาะสม */
+    font-family: 'Fredoka', sans-serif; /* playful headline font */
+    font-size: 2.6em;
     font-weight: 500;
     color: #343a40;
     display: flex;
@@ -73,36 +99,39 @@ body {
     justify-content: center;
     gap: 15px;
     flex-wrap: wrap;
-    margin: 0; /* ลบ margin ของ h1 */
+    margin: 0;        /* remove default h1 margin */
     line-height: 1.1;
 }
 
 .title-with-icons .icon-x {
-    color: #0d6efd; /* สีฟ้าสำหรับ X */
+    color: #0d6efd;  /* blue for X */
     font-size: 0.8em;
 }
 
 .title-with-icons .icon-o {
-    color: #fd7e14; /* สีส้มสำหรับ O */
+    color: #fd7e14;  /* orange for O */
     font-size: 0.8em;
 }
 
-/* ปรับ .subtitle ให้ใช้กับ icons */
+/* Subtitle underneath the main heading */
 .title-with-icons .subtitle {
-    font-size: 0.45em; /* อาจจะต้องปรับขนาด */
+    font-size: 0.45em;
     font-weight: 400;
     font-family: 'Poppins', sans-serif;
     color: #6c757d;
     width: 100%;
     text-align: center;
     margin-top: 5px;
-    display: block; /* ทำให้ขึ้นบรรทัดใหม่ */
+    display: block; /* force line‑break */
 }
 
-/* ----- AI Difficulty Section ----- */
+/* ------------------------------------------------------------------
+   AI Difficulty Selector
+   ------------------------------------------------------------------ */
+
 .difficulty-section {
-   /* ใช้สไตล์ .section-box */
-   padding-bottom: 10px; /* ลด padding ล่างเล็กน้อย */
+   /* inherits .section-box styling */
+   padding-bottom: 10px;
 }
 
 .difficulty-control-group {
@@ -119,6 +148,7 @@ body {
     font-size: 1em;
 }
 
+/* Segmented button group (Easy / Medium / Hard) */
 .segmented-control {
     display: inline-flex;
     border: 1px solid #ced4da;
@@ -138,22 +168,22 @@ body {
 }
 .segmented-control .segment:first-child { border-left: none; }
 
-/* --- Theme Colors for Active Segment --- */
-/* Selector ส่วนนี้ถูกต้องแล้ว ไม่ต้องเปลี่ยน เพราะ .difficulty-* อยู่บน .game-container */
-/* Easy (Default/Green) */
+/* --- Active Segment Colors (inherit via .game-container difficulty class) --- */
+/* Easy (green) */
 .difficulty-easy .segmented-control .segment.active,
 .game-container:not(.difficulty-medium):not(.difficulty-hard) .segmented-control .segment.active {
     background-color: #28a745; color: white; font-weight: 600;
 }
-/* Medium (Yellow/Orange) */
+/* Medium (yellow) */
 .difficulty-medium .segmented-control .segment.active {
     background-color: #ffc107; color: #343a40; font-weight: 600;
 }
-/* Hard (Red) */
+/* Hard (red) */
 .difficulty-hard .segmented-control .segment.active {
     background-color: #dc3545; color: white; font-weight: 600;
 }
 
+/* Helper text below segmented control */
 #difficulty-description {
     text-align: center;
     margin-top: 5px;
@@ -162,7 +192,10 @@ body {
     min-height: 1.1em;
 }
 
-/* ----- Status Message ----- */
+/* ------------------------------------------------------------------
+   Status Message
+   ------------------------------------------------------------------ */
+
 #status {
     font-size: 1.1em;
     font-weight: 600;
@@ -170,15 +203,17 @@ body {
     min-height: 1.3em;
     transition: color 0.5s ease;
 }
-/* Theme colors for status */
-/* Selector ถูกต้องแล้ว */
+
+/* Color the status text according to difficulty */
 .difficulty-easy #status,
-.game-container:not(.difficulty-medium):not(.difficulty-hard) #status { color: #007bff; } /* Default Blue */
-.difficulty-medium #status { color: #b38600; } /* Darker Yellow */
-.difficulty-hard #status { color: #c82333; } /* Darker Red */
+.game-container:not(.difficulty-medium):not(.difficulty-hard) #status { color: #007bff; } /* default blue */
+.difficulty-medium #status { color: #b38600; } /* darker yellow */
+.difficulty-hard #status { color: #c82333; } /* darker red */
 
+/* ------------------------------------------------------------------
+   Game Board Grid
+   ------------------------------------------------------------------ */
 
-/* ----- Game Board ----- */
 #board {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -189,7 +224,7 @@ body {
 }
 
 .cell {
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 1 / 1;               /* square cells */
     background-color: #e9ecef;
     border-radius: 6px;
     display: flex;
@@ -204,38 +239,42 @@ body {
     background-color: #dee2e6;
 }
 
-/* Theme colors for X and O */
-/* Selector ถูกต้องแล้ว */
+/* Color of X and O characters, by difficulty */
 .difficulty-easy .cell.X,
-.game-container:not(.difficulty-medium):not(.difficulty-hard) .cell.X { color: #0d6efd; } /* Blue */
+.game-container:not(.difficulty-medium):not(.difficulty-hard) .cell.X { color: #0d6efd; } /* blue */
 .difficulty-easy .cell.O,
-.game-container:not(.difficulty-medium):not(.difficulty-hard) .cell.O { color: #fd7e14; } /* Orange */
+.game-container:not(.difficulty-medium):not(.difficulty-hard) .cell.O { color: #fd7e14; } /* orange */
 
-.difficulty-medium .cell.X { color: #b38600; } /* Dark Yellow */
-.difficulty-medium .cell.O { color: #ff8c00; } /* Dark Orange */
+.difficulty-medium .cell.X { color: #b38600; } /* dark yellow */
+.difficulty-medium .cell.O { color: #ff8c00; } /* dark orange */
 
-.difficulty-hard .cell.X { color: #6f42c1; } /* Purple */
-.difficulty-hard .cell.O { color: #c82333; } /* Dark Red */
+.difficulty-hard .cell.X { color: #6f42c1; } /* purple */
+.difficulty-hard .cell.O { color: #c82333; } /* dark red */
 
+/* ------------------------------------------------------------------
+   Scoreboard Section
+   ------------------------------------------------------------------ */
 
-/* ----- Score Section ----- */
 #scores.score-section {
     display: flex;
     justify-content: space-around;
     margin-top: 25px;
-    /* ใช้ style .section-box */
+    /* inherits .section-box styling */
 }
 
 .score-box { text-align: center; }
 .score-box h2 { font-size: 1em; margin-bottom: 5px; color: #495057; }
 .score-value { font-size: 1.8em; font-weight: 700; }
-.score-box.player .score-value { color: #0d6efd; } /* สีคะแนน Player อาจจะคงที่ */
-.score-box.bot .score-value { color: #fd7e14; } /* สีคะแนน Bot อาจจะคงที่ */
+.score-box.player .score-value { color: #0d6efd; } /* player score color */
+.score-box.bot   .score-value { color: #fd7e14; } /* bot score color */
 
 .wins { font-size: 0.8em; color: #6c757d; margin-top: 2px; }
 .win-count { font-weight: bold; }
 
-/* ----- Restart Button ----- */
+/* ------------------------------------------------------------------
+   Restart Button
+   ------------------------------------------------------------------ */
+
 #restart-button {
     display: block;
     width: 80%;
@@ -251,16 +290,17 @@ body {
     transition: background-color 0.3s ease, transform 0.1s ease;
 }
 
-/* Theme colors for restart button */
-/* Selector ถูกต้องแล้ว */
+/* Button background color by difficulty */
 .difficulty-easy #restart-button,
-.game-container:not(.difficulty-medium):not(.difficulty-hard) #restart-button { background-color: #198754; } /* Green */
-.difficulty-medium #restart-button { background-color: #ffc107; color: #343a40; } /* Yellow */
-.difficulty-hard #restart-button { background-color: #dc3545; } /* Red */
+.game-container:not(.difficulty-medium):not(.difficulty-hard) #restart-button { background-color: #198754; } /* green */
+.difficulty-medium #restart-button { background-color: #ffc107; color: #343a40; } /* yellow */
+.difficulty-hard   #restart-button { background-color: #dc3545; } /* red */
 
 #restart-button:hover { opacity: 0.9; }
 #restart-button:active { transform: scale(0.98); }
 
-/* ----- ลบสไตล์ Title เดิมที่ไม่ใช้ออก ----- */
-/* .game-title { ... } */ /* ถ้ามี rule นี้อยู่ ให้ลบออก */
-/* .game-title span { ... } */ /* ถ้ามี rule นี้อยู่ ให้ลบออก */
+/* ------------------------------------------------------------------
+   Remove legacy title styles (if any)
+   ------------------------------------------------------------------ */
+/* .game-title { ... }      */
+/* .game-title span { ... } */
