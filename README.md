@@ -112,4 +112,6 @@ This project implements the specific requirements using the following techniques
 * **Web Framework (FastAPI):** FastAPI handles incoming HTTP requests, routes them to the appropriate Python functions (defined in `routers/game_router.py`), validates request data (using Pydantic models), calls the game/database logic, and returns JSON responses to the frontend. It also serves the static files (HTML, CSS, JS).
 
 ## 📂 Project Structure
-![image](https://github.com/Sayomphon/Tic-Tac-Toe-Game/blob/main/Pictures/Project%20structure.png)
+<p align="center">
+  <img src="https://github.com/Sayomphon/Tic-Tac-Toe-Game/blob/main/Pictures/Project%20structure.png?raw=true" alt="Project Structure">
+</p>
