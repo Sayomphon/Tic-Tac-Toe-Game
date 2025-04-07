@@ -112,3 +112,26 @@ This project implements the specific requirements using the following techniques
 * **Web Framework (FastAPI):** FastAPI handles incoming HTTP requests, routes them to the appropriate Python functions (defined in `routers/game_router.py`), validates request data (using Pydantic models), calls the game/database logic, and returns JSON responses to the frontend. It also serves the static files (HTML, CSS, JS).
 
 ## 📂 Project Structure
+tic-tac-toe-game/
+│
+├── app.py                  # FastAPI entry‑point
+├── requirements.txt
+│
+├── game_logic/
+│   ├── tictactoe.py        # Core game + Minimax AI
+│   ├── database.py         # SQLite / in‑memory stats
+│   └── __init__.py
+│
+├── routers/
+│   ├── game_router.py      # REST endpoints
+│   └── __init__.py
+│
+├── static/                 # Front‑end assets
+│   ├── style.css
+│   └── script.js
+│
+├── templates/
+│   └── index.html          # Served at "/"
+│
+└── db/
+    └── tic_tac_toe.db      # Auto‑generated
