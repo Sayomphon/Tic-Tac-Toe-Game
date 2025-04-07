@@ -15,7 +15,7 @@ A web-based Tic-Tac-Toe game where you play against an AI opponent with varying 
 
 ## 📸 Demo / Screenshot
 
-![image](https://github.com/user-attachments/assets/7b63105a-a918-4b48-ba6e-511500a77211)
+![image](https://github.com/Sayomphon/Tic-Tac-Toe-Game/blob/main/Pictures/playing%20hard.png)
 
 
 ## 💻 Technologies Used
@@ -112,4 +112,4 @@ This project implements the specific requirements using the following techniques
 * **Web Framework (FastAPI):** FastAPI handles incoming HTTP requests, routes them to the appropriate Python functions (defined in `routers/game_router.py`), validates request data (using Pydantic models), calls the game/database logic, and returns JSON responses to the frontend. It also serves the static files (HTML, CSS, JS).
 
 ## 📂 Project Structure
-![image](https://github.com/user-attachments/assets/7b63105a-a918-4b48-ba6e-511500a77211)
+![image](https://github.com/Sayomphon/Tic-Tac-Toe-Game/blob/main/Pictures/Project%20structure.png)
