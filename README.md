@@ -117,3 +117,8 @@ This project implements the specific requirements using the following techniques
     * **Win Streak Bonus:** The `database.py` logic increments a `win_streak` counter on each win. If the streak reaches 3, an additional +1 bonus point is added to the `score`, and the `win_streak` is reset to 0. The streak also resets to 0 on a loss or tie.
 * **Score Viewing:** The frontend uses JavaScript's `Workspace` to call the `/api/get_scores` endpoint. This endpoint retrieves the current statistics (score, win streak, total wins) for all known players ("Player1", "Bot") from the database and returns them as JSON. The JavaScript then updates the corresponding HTML elements on the page.
 * **Web Framework (FastAPI):** FastAPI handles incoming HTTP requests, routes them to the appropriate Python functions (defined in `routers/game_router.py`), validates request data (using Pydantic models), calls the game/database logic, and returns JSON responses to the frontend. It also serves the static files (HTML, CSS, JS).
+
+📝 License
+Released under the  Apache License. See LICENSE for details.
+
+Enjoy the game & may the best strategy win!
